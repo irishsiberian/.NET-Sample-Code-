@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<graph>
+	<node id="1" role="start">
+		<link ref="2" weight="5" />
+	</node>
+  <node id="2" status="crash">
+    <link ref="1" weight="5" />
+    <link ref="10" weight="4" />
+  </node>
+	<node id="10" role="finish">
+		<link ref="2" weight="4" />
+	</node>
+</graph>

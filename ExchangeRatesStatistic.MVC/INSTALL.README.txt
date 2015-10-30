@@ -1,0 +1,3 @@
+﻿1. Create database (MS SQL Server 2008 R2 Express) with the script Deployment/ExchangeRatesDbScript.sql
+2. Check connection string in web.config.
+3. Compile, run and enjoy.

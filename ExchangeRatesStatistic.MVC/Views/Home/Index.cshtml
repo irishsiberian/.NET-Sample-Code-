@@ -1,0 +1,173 @@
+﻿@model ExchangeRatesStatistic.MVC.Models.ExchangeRatesStatisticsModel
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Exchange rates statistics</h2>
+@using (Html.BeginForm("GetExchangeRatesForPeriod", "Home", FormMethod.Post, new
+    {
+        id = "ExchangeRatesHistoryForm"
+    }))
+{<br />
+        <div id="errorMessages">@Html.ValidationSummary(true)</div>
+        <div>
+            @Html.LabelFor(model => model.StartDate)
+            @Html.EditorFor(model => model.StartDate)
+            @Html.ValidationMessageFor(model => model.StartDate)
+
+            @Html.LabelFor(model => model.EndDate)
+            @Html.EditorFor(model => model.EndDate)
+            @Html.ValidationMessageFor(model => model.EndDate)
+
+            <br /><br />
+
+            @Html.LabelFor(model => model.BaseCurrencyCode)
+            @Html.DropDownListFor(model => model.BaseCurrencyCode, (List<SelectListItem>)ViewBag.AvailableCurrencies)
+            @Html.LabelFor(model => model.RelationalCurrencyCode)
+            @Html.DropDownListFor(model => model.RelationalCurrencyCode, (List<SelectListItem>)ViewBag.AvailableCurrencies)
+            
+        </div>
+        <br />
+        <input type="submit" value="Get statistics"/>
+}
+
+<div id="ChartContainer">
+</div>
+
+<script type="text/javascript">
+   
+    $(document).ready(function () {
+        init();
+    });
+
+    function init() {
+        //set culture for datepicker
+        if ($.datepicker.regional['@UICulture'] != undefined && $.datepicker.regional['@UICulture'] != null)
+            $.datepicker.setDefaults($.datepicker.regional['@UICulture']);
+        else
+            $.datepicker.setDefaults($.datepicker.regional['']); //default is 'en-US'
+
+        $('#StartDate').datepicker({
+            maxDate: new Date()
+        });
+        $('#EndDate').datepicker({
+            maxDate: new Date()
+        });
+
+        var chartOptions = initExchangeChart();
+        FillExchangesChart(chartOptions);
+    }
+
+    function initExchangeChart() {
+
+        // define the options
+        var options = {
+
+            chart: {
+                renderTo: 'ChartContainer'
+            },
+            
+            title: {
+                text: '@Html.Raw(Model.RelationalCurrencyCode + " to " + Model.BaseCurrencyCode + " rate")'
+            },
+
+            xAxis: {
+                type: 'datetime',
+                tickInterval: 24 * 3600 * 1000, // one day
+                tickWidth: 0,
+                gridLineWidth: 1,
+                labels: {
+                    align: 'left',
+                    x: 3,
+                    y: -3
+                }
+            },
+
+            yAxis: [{ // left y axis
+                title: {
+                    text: null
+                },
+                labels: {
+                    align: 'left',
+                    x: 3,
+                    y: 16,
+                    formatter: function () {
+                        return Highcharts.numberFormat(this.value, 4);
+                    }
+                },
+                showFirstLabel: false
+            }, { // right y axis
+                linkedTo: 0,
+                gridLineWidth: 0,
+                opposite: true,
+                title: {
+                    text: null
+                },
+                labels: {
+                    align: 'right',
+                    x: -3,
+                    y: 16,
+                    formatter: function () {
+                        return Highcharts.numberFormat(this.value, 4);
+                    }
+                },
+                showFirstLabel: false
+            }],
+            legend: [{
+                enabled: false
+            }],
+            series: [{
+                name: '@Html.Raw(Model.RelationalCurrencyCode)',
+                lineWidth: 4,
+                marker: {
+                    radius: 4
+                }
+            }]
+        };
+
+        return options;
+    }
+
+    function FillExchangesChart(chartOptions) {
+        //evaluate Json chart data from MVC model
+        var data = '@Html.Raw(Model.ExchangeRatesJsonChartData)';
+        data = eval(data);
+
+        if (data == null || data.length == 0)
+            return;
+
+        var ratesDataPoints = [];
+
+        for (var i = 0; i < data.length; i++)
+        {
+            data[i].Date = toDate(data[i].Date);
+            //fill chart data array
+            ratesDataPoints.push([
+                        data[i].Date.getTime(),
+                        parseFloat(data[i].Rate)
+            ])
+        }
+
+        //bind data to the chart
+        chartOptions.series[0].data = ratesDataPoints;
+
+        //create and render chart
+        var chart = new Highcharts.Chart(chartOptions);
+    }
+
+    //parse Date object from .NET JavaSerializer string
+    function toDate(s) {
+        var toDateRe = new RegExp('^/Date(.+)/$');
+        if (!s) {
+            return null;
+        }
+        var constructor = s.replace(toDateRe, "new Date$1");
+        if (constructor == s) {
+            throw 'Invalid serialized DateTime value: "' + s + '"';
+        }
+        return eval(constructor);
+    }
+
+</script>
+

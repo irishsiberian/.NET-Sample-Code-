@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="RoadMapXmlSchema"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>  
+  <xs:element name="graph">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="node" maxOccurs="unbounded" minOccurs="2">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="link" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:attribute name="ref" use="required" type="xs:positiveInteger"/>
+                  <xs:attribute name="weight" use="required" type="xs:positiveInteger"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="id" use="required" type="xs:positiveInteger"/>
+            <xs:attribute name="role">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="start"/>
+                  <xs:enumeration value="finish"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+            <xs:attribute name="status">
+              <xs:simpleType>
+                <xs:restriction base="xs:string">
+                  <xs:enumeration value="crash"/>
+                </xs:restriction>
+              </xs:simpleType>
+            </xs:attribute>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
